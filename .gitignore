@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Generated simulation data (regenerate with the commands in README.md)
+capstone codes/**/data/
+
+# Large binary artefacts
+*.pkl
+*.zip
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+.ipynb_checkpoints/

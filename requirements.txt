@@ -1,0 +1,14 @@
+# Versions the code was developed and verified with (Python 3.12).
+# With numpy/torch pinned like this the generated dataset is bit-for-bit reproducible.
+numpy==1.26.4
+scipy==1.13.0
+pandas==3.0.3
+torch==2.2.2
+tqdm==4.66.2
+
+# Notebooks and plots
+matplotlib==3.8.4
+ipykernel
+nbformat
+nbclient
+jupyterlab
