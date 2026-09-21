@@ -10,6 +10,7 @@ A capstone project that studies wash trading as a market pathology on top of
   a market-specific threshold) to that data, and measure real precision / recall against the known labels.
 
 Status: work in progress. Working defaults are marked `TODO` in the code and notebooks.
+Collaboration rules (branches, Pull Requests, versioning): see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Repository layout
 
@@ -17,7 +18,7 @@ Status: work in progress. Working defaults are marked `TODO` in the code and not
 marketsim/            PyMarketSim (upstream simulator, see "Third-party code" below)
 repro/composable/     ComposableSimulator: mix agent types in one market; reused by washtrade
 capstone codes/
-  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v3 (each version is frozen once superseded)
+  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v3 (existing versions are frozen; new work goes into v4, ...)
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
