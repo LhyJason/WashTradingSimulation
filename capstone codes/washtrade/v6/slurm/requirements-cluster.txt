@@ -1,0 +1,8 @@
+# Minimal environment for generating v6 datasets on a Linux cluster (Python 3.12).
+# Same numpy / torch / pandas / scipy versions as the local development environment, so the
+# generated data can be compared bit for bit (see slurm/README.md, step 2).
+# torch: the CPU wheel is enough; the simulator never uses a GPU.
+numpy==1.26.4
+scipy==1.13.0
+pandas==3.0.3
+torch==2.2.2

@@ -16,6 +16,10 @@ env/
 # Generated simulation data (regenerate with the commands in README.md)
 capstone codes/**/data/
 
+# Cluster runs (capstone codes/washtrade/v6/slurm/): environment and Slurm logs
+.venv-cluster/
+/logs/
+
 # Large binary artefacts
 *.pkl
 *.zip

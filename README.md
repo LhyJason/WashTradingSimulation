@@ -18,12 +18,13 @@ Collaboration rules (branches, Pull Requests, versioning): see [CONTRIBUTING.md]
 marketsim/            PyMarketSim (upstream simulator, see "Third-party code" below)
 repro/composable/     ComposableSimulator: mix agent types in one market; reused by washtrade
 capstone codes/
-  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v3 (v1-v5 are frozen; new work goes into v6, ...)
+  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v6 (v1-v6 are frozen; new work goes into v7, ...)
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
     v4/               v3 + random limit prices around the midpoint (buy/sell limits cross inside the spread); own export + generator
     v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
+    v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
   detection/
     v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation
 ```
@@ -62,6 +63,12 @@ python "capstone codes/washtrade/v4/run_smoke.py"
 python "capstone codes/washtrade/v4/generate.py" --name ds_v4 --seeds 10
 python "capstone codes/washtrade/v5/run_smoke.py"      # v5 has no export/generator of its own yet
 
+# 2c. (optional) v6: smoke test, then every sweep (6,460 runs at 20 seeds); or run v6/run_v6.ipynb
+python "capstone codes/washtrade/v6/run_smoke.py"
+python "capstone codes/washtrade/v6/generate.py" list
+python "capstone codes/washtrade/v6/generate.py" run   --sweep gap --seeds 20
+python "capstone codes/washtrade/v6/generate.py" merge --sweep gap
+
 # 3. Run the detector configurations over the dataset (~30 s)
 python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/washtrade/v3/data/ds_v3"
 ```
@@ -77,6 +84,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/washtrade/v2/results_v2.ipynb` | 2 vs 3 wallets, the `wash_gap` scan (self-trade vs intercept rate), order-book recording |
 | `capstone codes/washtrade/v3/results_v3.ipynb` | camouflage wallets, multiple groups, the `observable/` vs `labels/` split, dataset overview (needs step 2 above) |
 | `capstone codes/detection/v1/results_detection_v1.ipynb` | detector evaluation on the v3 dataset (needs step 2; runs step 3 itself if its results are missing) |
+| `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 
 Open them with Jupyter from anywhere inside the repository; each notebook locates the repository root itself.
 
@@ -96,7 +104,16 @@ timing, camouflage and labels and only change the price rule; see `PRICE_RANDOMI
 TODO: v5 has no dataset generator, and the detector has not been run on a v4/v5 dataset in this repository, so the
 detector F1 quoted in `PRICE_RANDOMIZATION.md` is not yet reproducible from the code here.
 
-## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`)
+## Active background and camouflage intensity (v6)
+
+With PyMarketSim's Table-3 mean reversion `r = 0.01` and `T = 2000`, a ZI's forecast of the final fundamental is
+almost constant for most of the run, so honest trading stops after an opening burst and only resumes near the end;
+more ZIs or faster arrivals do not change this. v6 makes `r` a background factor (`r = 1e-3` keeps the honest market
+trading throughout), gives camouflage wallets their own arrival rate, and measures each wash group's leakage
+(the share of its volume traded with outsiders). With default arguments v6 reproduces v3 bit for bit. See
+`capstone codes/washtrade/v6/README.md` for the backgrounds, the six sweeps and how to run them on a Slurm cluster.
+
+## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`)
 
 ```
 <dataset>/runs/<background>__<scenario>__s<seed>/

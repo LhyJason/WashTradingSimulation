@@ -33,9 +33,9 @@ git push -u origin <your-name>/<topic>   # then open a PR on GitHub
 
 ## Project rules
 
-- **Existing versions are frozen by default; new work goes into a new version.** `washtrade/v1` to `v5`
+- **Existing versions are frozen by default; new work goes into a new version.** `washtrade/v1` to `v6`
   and `detection/v1` keep their behaviour, so earlier results stay reproducible. A new mechanism or
-  detector goes into the next directory (`washtrade/v6`, `detection/v2`, ...). If it should reproduce an
+  detector goes into the next directory (`washtrade/v7`, `detection/v2`, ...). If it should reproduce an
   earlier version under some setting, add a smoke-test check that proves it. Edit an existing version
   only to fix a clear bug: say so in the PR and re-run the results that depend on it.
 - **Do not edit `marketsim/`.** The capstone code only imports and monkey-patches it, so the upstream
@@ -43,7 +43,7 @@ git push -u origin <your-name>/<topic>   # then open a PR on GitHub
 - **Everything is seeded.** Keep runs deterministic for a given seed. With the pinned `numpy` and `torch`
   versions the dataset is reproduced bit for bit; keep it that way.
 - **The dataset schema is versioned.** If you change the files or columns written by
-  `washtrade/v3/export.py` or `v4/export.py` (or a successor in a newer version), bump `SCHEMA_VERSION` so old and new
+  `washtrade/v3/export.py`, `v4/export.py` or `v6/export.py` (or a successor in a newer version), bump `SCHEMA_VERSION` so old and new
   runs can be told apart.
 - **New dependency?** Add it to `requirements.txt` with a version.
 - **Unsettled choices** are marked `TODO:` in the code or notebook where the choice is made, with one line

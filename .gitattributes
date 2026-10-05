@@ -1,3 +1,7 @@
 * text=auto
 *.ipynb text eol=lf
 *.py text eol=lf
+
+# Shell and Slurm scripts must keep LF line endings to run on Linux, even in a Windows checkout
+*.sh     text eol=lf
+*.sbatch text eol=lf
