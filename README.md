@@ -18,10 +18,12 @@ Collaboration rules (branches, Pull Requests, versioning): see [CONTRIBUTING.md]
 marketsim/            PyMarketSim (upstream simulator, see "Third-party code" below)
 repro/composable/     ComposableSimulator: mix agent types in one market; reused by washtrade
 capstone codes/
-  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v3 (existing versions are frozen; new work goes into v4, ...)
+  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v3 (v1-v5 are frozen; new work goes into v6, ...)
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
+    v4/               v3 + random limit prices around the midpoint (buy/sell limits cross inside the spread); own export + generator
+    v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
   detection/
     v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation
 ```
@@ -55,6 +57,11 @@ python "capstone codes/detection/v1/run_smoke.py"
 # 2. Generate the labelled dataset: 2 backgrounds x 9 scenarios x 10 seeds = 180 runs (~30 s)
 python "capstone codes/washtrade/v3/generate.py" --name ds_v3 --seeds 10
 
+# 2b. (optional) v4/v5 smoke tests and a v4 dataset with randomized wash prices (schema washtrade.v4/1)
+python "capstone codes/washtrade/v4/run_smoke.py"
+python "capstone codes/washtrade/v4/generate.py" --name ds_v4 --seeds 10
+python "capstone codes/washtrade/v5/run_smoke.py"      # v5 has no export/generator of its own yet
+
 # 3. Run the detector configurations over the dataset (~30 s)
 python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/washtrade/v3/data/ds_v3"
 ```
@@ -73,7 +80,23 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 
 Open them with Jupyter from anywhere inside the repository; each notebook locates the repository root itself.
 
-## Dataset layout (produced by `washtrade/v3/generate.py`)
+## Wash-price randomization (v4 / v5)
+
+v3 posts both wash legs exactly at the midpoint, which is an easy fingerprint. v4 and v5 keep v3's wallets, cycles,
+timing, camouflage and labels and only change the price rule; see `PRICE_RANDOMIZATION.md` for the method, the
+27-configuration sweep (2,430 runs) and the headline numbers, and `capstone codes/washtrade/v4/README.md` and
+`v5/README.md` for each version's parameters.
+
+| Version | Price rule | Exporter / generator |
+|---|---|---|
+| v3 | both legs at the midpoint | `v3/export.py`, `v3/generate.py` |
+| v4 | sell limit ~ truncated normal around the midpoint, buy limit = sell limit + random crossing width | `v4/export.py`, `v4/generate.py` (schema `washtrade.v4/1`) |
+| v5 | one common price per event, truncated normal around the microprice, tick-rounded | reuses v3 simulator; no own exporter yet |
+
+TODO: v5 has no dataset generator, and the detector has not been run on a v4/v5 dataset in this repository, so the
+detector F1 quoted in `PRICE_RANDOMIZATION.md` is not yet reproducible from the code here.
+
+## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`)
 
 ```
 <dataset>/runs/<background>__<scenario>__s<seed>/
