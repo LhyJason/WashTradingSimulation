@@ -26,6 +26,7 @@ git push -u origin <your-name>/<topic>   # then open a PR on GitHub
    ```bash
    python "capstone codes/washtrade/v3/run_smoke.py"
    python "capstone codes/detection/v1/run_smoke.py"
+   python "capstone codes/detection/v2/run_smoke.py"
    ```
 2. If you changed the simulator or the dataset generator, regenerate the dataset and re-run the
    affected notebooks (commands in `README.md`).
@@ -34,8 +35,8 @@ git push -u origin <your-name>/<topic>   # then open a PR on GitHub
 ## Project rules
 
 - **Existing versions are frozen by default; new work goes into a new version.** `washtrade/v1` to `v6`
-  and `detection/v1` keep their behaviour, so earlier results stay reproducible. A new mechanism or
-  detector goes into the next directory (`washtrade/v7`, `detection/v2`, ...). If it should reproduce an
+  and `detection/v1` to `v2` keep their behaviour, so earlier results stay reproducible. A new mechanism or
+  detector goes into the next directory (`washtrade/v7`, `detection/v3`, ...). If it should reproduce an
   earlier version under some setting, add a smoke-test check that proves it. Edit an existing version
   only to fix a clear bug: say so in the PR and re-run the results that depend on it.
 - **Do not edit `marketsim/`.** The capstone code only imports and monkey-patches it, so the upstream

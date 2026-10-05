@@ -26,7 +26,8 @@ capstone codes/
     v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
   detection/
-    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation
+    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v2 are frozen; new work goes into v3, ...)
+    v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -71,6 +72,10 @@ python "capstone codes/washtrade/v6/generate.py" merge --sweep gap
 
 # 3. Run the detector configurations over the dataset (~30 s)
 python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/washtrade/v3/data/ds_v3"
+
+# 3b. (optional) detection v2 on the v6 sweeps (needs step 2c); or run detection/v2/results_detection_v2.ipynb
+python "capstone codes/detection/v2/run_smoke.py"
+python "capstone codes/detection/v2/experiment.py" all --jobs 8
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -84,6 +89,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/washtrade/v2/results_v2.ipynb` | 2 vs 3 wallets, the `wash_gap` scan (self-trade vs intercept rate), order-book recording |
 | `capstone codes/washtrade/v3/results_v3.ipynb` | camouflage wallets, multiple groups, the `observable/` vs `labels/` split, dataset overview (needs step 2 above) |
 | `capstone codes/detection/v1/results_detection_v1.ipynb` | detector evaluation on the v3 dataset (needs step 2; runs step 3 itself if its results are missing) |
+| `capstone codes/detection/v2/results_detection_v2.ipynb` | the detector on every v6 sweep: false positives on honest-only markets, leakage identity, random-walk benchmark, calibrated thresholds (generates missing v6 data itself) |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 
 Open them with Jupyter from anywhere inside the repository; each notebook locates the repository root itself.
@@ -112,6 +118,15 @@ more ZIs or faster arrivals do not change this. v6 makes `r` a background factor
 trading throughout), gives camouflage wallets their own arrival rate, and measures each wash group's leakage
 (the share of its volume traded with outsiders). With default arguments v6 reproduces v3 bit for bit. See
 `capstone codes/washtrade/v6/README.md` for the backgrounds, the six sweeps and how to run them on a Slurm cluster.
+
+## Detection on an active market (detection v2)
+
+detection v2 runs the v1 detector, unchanged, on all 6,460 v6 runs. In PyMarketSim's Table-3 market
+(`thin`, `thick`) it works as in v1. In the active backgrounds, honest positions move like random walks
+and most honest wallets return to a zero position at least once, so the closing signal no longer separates
+them. Algorithm 1 then flags 40-45% of honest volume on honest-only runs. See
+`capstone codes/detection/v2/README.md` for the leakage identity, the random-walk benchmark and
+control-calibrated thresholds.
 
 ## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`)
 
