@@ -27,8 +27,9 @@ capstone codes/
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
     v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
   detection/
-    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v2 are frozen; new work goes into v3, ...)
+    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v3 are frozen; new work goes into v4, ...)
     v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
+    v3/               the v2 detector on the v7 sweeps; thresholds calibrated per background to a 1% control FPR
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -82,6 +83,10 @@ python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/was
 # 3b. (optional) detection v2 on the v6 sweeps (needs step 2c); or run detection/v2/results_detection_v2.ipynb
 python "capstone codes/detection/v2/run_smoke.py"
 python "capstone codes/detection/v2/experiment.py" all --jobs 8
+
+# 3c. (optional) detection v3 on the v7 sweeps (needs all five v7 sweeps); or run detection/v3/results_detection_v3.ipynb
+python "capstone codes/detection/v3/run_smoke.py"
+python "capstone codes/detection/v3/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v7/data"
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -96,6 +101,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/washtrade/v3/results_v3.ipynb` | camouflage wallets, multiple groups, the `observable/` vs `labels/` split, dataset overview (needs step 2 above) |
 | `capstone codes/detection/v1/results_detection_v1.ipynb` | detector evaluation on the v3 dataset (needs step 2; runs step 3 itself if its results are missing) |
 | `capstone codes/detection/v2/results_detection_v2.ipynb` | the detector on every v6 sweep: false positives on honest-only markets, leakage identity, random-walk benchmark, calibrated thresholds (generates missing v6 data itself) |
+| `capstone codes/detection/v3/results_detection_v3.ipynb` | the detector against the v7 adversary: calibrated thresholds, fixed triad vs full adversary, one tactic at a time (reads detection v3 results; set `WASH_V7_DATA`) |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 | `capstone codes/washtrade/v7/run_v7.ipynb` | runs the whole of v7 (smoke test, all five sweeps in parallel, merge, hashes) and draws quick-look figures |
 
@@ -144,6 +150,16 @@ and most honest wallets return to a zero position at least once, so the closing 
 them. Algorithm 1 then flags 40-45% of honest volume on honest-only runs. See
 `capstone codes/detection/v2/README.md` for the leakage identity, the random-walk benchmark and
 control-calibrated thresholds.
+
+## Detection against the evasive adversary (detection v3)
+
+detection v3 runs the v2 detector, unchanged, on the five v7 sweeps, and scores every run at a threshold calibrated
+per background so that at most 1% of honest volume in that background's control runs is flagged. In `thin` and
+`thick`, each tactic alone barely matters: the initial score is binary, and one return to zero is enough. Combined
+tactics do work: rotation from 96 wallets, random size and residuals bring recall at the calibrated threshold to
+about 0.75, and about 0.35 with camouflage and a leg gap of 20. In the active markets detection is weak even against
+a fixed triad (recall 0.45 / 0.30), because honest wallets close their positions too. See
+`capstone codes/detection/v3/README.md`.
 
 ## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`)
 
