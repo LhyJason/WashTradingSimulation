@@ -28,10 +28,11 @@ capstone codes/
     v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
     v8/               v7 + execution order against short windows (interleaved edges, pipelined rounds); multi-unit honest orders (MZI)
   detection/
-    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v4 are frozen; new work goes into v5, ...)
+    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v5 are frozen; new work goes into v6, ...)
     v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
     v3/               the v2 detector on the v7 sweeps; thresholds calibrated per background to a 1% control FPR
     v4/               multi-channel detector: closure + short-window round-trip and same-pair-repeat channels, control-null fusion
+    v5/               the v4 detector, unchanged, against the v8 adversary and multi-unit honest backgrounds
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -97,6 +98,10 @@ python "capstone codes/detection/v3/experiment.py" all --jobs 8 --data "capstone
 # 3d. (optional) detection v4 on the v7 sweeps; or run detection/v4/results_detection_v4.ipynb
 python "capstone codes/detection/v4/run_smoke.py"
 python "capstone codes/detection/v4/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v7/data"
+
+# 3e. (optional) detection v5 on the v8 sweeps (needs step 2e); or run detection/v5/results_detection_v5.ipynb
+python "capstone codes/detection/v5/run_smoke.py"
+python "capstone codes/detection/v5/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v8/data"
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -113,6 +118,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/detection/v2/results_detection_v2.ipynb` | the detector on every v6 sweep: false positives on honest-only markets, leakage identity, random-walk benchmark, calibrated thresholds (generates missing v6 data itself) |
 | `capstone codes/detection/v3/results_detection_v3.ipynb` | the detector against the v7 adversary: calibrated thresholds, fixed triad vs full adversary, one tactic at a time (reads detection v3 results; set `WASH_V7_DATA`) |
 | `capstone codes/detection/v4/results_detection_v4.ipynb` | the multi-channel detector against the v7 adversary, v3 vs v4, FPR in wash runs, floor sensitivity (reads detection v4 results; set `WASH_V7_DATA`) |
+| `capstone codes/detection/v5/results_detection_v5.ipynb` | the v4 detector against the v8 adversary: recall by execution order, pipeline depth and rate; cost of evasion; multi-unit honest backgrounds (reads detection v5 results; set `WASH_V8_DATA`) |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 | `capstone codes/washtrade/v7/run_v7.ipynb` | runs the whole of v7 (smoke test, all five sweeps in parallel, merge, hashes) and draws quick-look figures |
 
@@ -193,6 +199,17 @@ wallet holds a position about D times longer while the group stays flat. Each gr
 (holding time, unfinished rounds, open units, wash volume per 1000 steps). `agents.MultiUnitZI` (agent type
 `"MZI"`) is ZI with orders of 1..m units; it is registered from `v8/agents.py`, and `marketsim/` is untouched.
 With default arguments v8 reproduces v7 bit for bit. See `capstone codes/washtrade/v8/README.md`.
+
+## The v4 detector against the v8 adversary (detection v5)
+
+detection v5 runs detection v4, unchanged, on both v8 sweeps, with thresholds recalibrated on each of the eight v8
+backgrounds' control runs (on the four standard backgrounds they equal v4's). Interleaving alone backfires: it
+removes same-pair bursts, but each wallet then undoes its position within one pass of the cycle and the round-trip
+channel catches it. A pipeline evades v4 in the active markets: with D = 8 and interleaved edges, recall at gap 0 is
+0.07 (`active`) and 0.16 (`active_dense`), and a slower rate also brings `thin` and `thick` down to 0.08. The
+pipeline is cheap: wash volume is unchanged, and the cost is longer holding at wallet level, which the group hedges
+internally. Multi-unit honest orders weaken the closure channel, not the new ones. See
+`capstone codes/detection/v5/README.md`.
 
 ## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`, v8 under `washtrade.v8/1`)
 
