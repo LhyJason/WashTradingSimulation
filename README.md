@@ -22,8 +22,8 @@ capstone codes/
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
-    v4/               v3 + random limit prices around the midpoint (buy/sell limits cross inside the spread); own export + generator
-    v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
+    v4 (cooperation)/ v3 + random limit prices around the midpoint (buy/sell limits cross inside the spread); own export + generator
+    v5 (cooperation)/ v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
     v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
     v8/               v7 + execution order against short windows (interleaved edges, pipelined rounds); multi-unit honest orders (MZI)
@@ -124,7 +124,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 
 Open them with Jupyter from anywhere inside the repository; each notebook locates the repository root itself.
 
-## Wash-price randomization (v4 / v5)
+## Wash-price randomization (v4 (cooperation) / v5 (cooperation))
 
 v3 posts both wash legs exactly at the midpoint, which is an easy fingerprint. v4 and v5 keep v3's wallets, cycles,
 timing, camouflage and labels and only change the price rule; see `PRICE_RANDOMIZATION.md` for the method, the
