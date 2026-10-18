@@ -18,7 +18,7 @@ Collaboration rules (branches, Pull Requests, versioning): see [CONTRIBUTING.md]
 marketsim/            PyMarketSim (upstream simulator, see "Third-party code" below)
 repro/composable/     ComposableSimulator: mix agent types in one market; reused by washtrade
 capstone codes/
-  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v7 (v1-v7 are frozen; new work goes into v8, ...)
+  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v8 (v1-v8 are frozen; new work goes into v9, ...)
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
@@ -26,6 +26,7 @@ capstone codes/
     v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
     v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
+    v8/               v7 + execution order against short windows (interleaved edges, pipelined rounds); multi-unit honest orders (MZI)
   detection/
     v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v4 are frozen; new work goes into v5, ...)
     v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
@@ -77,6 +78,10 @@ python "capstone codes/washtrade/v6/generate.py" merge --sweep gap
 python "capstone codes/washtrade/v7/run_smoke.py"
 python "capstone codes/washtrade/v7/generate.py" run   --sweep evasive --seeds 50
 python "capstone codes/washtrade/v7/generate.py" merge --sweep evasive
+
+# 2e. (optional) v8: smoke test, then both sweeps (28,000 runs at 200 seeds, ~30 min with 15 jobs)
+python "capstone codes/washtrade/v8/run_smoke.py"
+python "capstone codes/washtrade/v8/generate.py" all --jobs 8
 
 # 3. Run the detector configurations over the dataset (~30 s)
 python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/washtrade/v3/data/ds_v3"
@@ -179,7 +184,17 @@ caught. A leg gap of 5 or more still defeats it in the active markets, and the F
 (spillover through the network step) is not controlled and is reported next to recall. See
 `capstone codes/detection/v4/README.md`.
 
-## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`)
+## An adversary against short windows, and multi-unit honest orders (v8)
+
+v8 asks what a wash group can do against detection v4's short-window channels, and whether those channels only
+worked because every honest order is one unit. Two new knobs change only the order of a round's unit events:
+`edge_order="interleaved"` runs a round's edges round robin, and `pipeline=D` keeps D rounds open at once, so each
+wallet holds a position about D times longer while the group stays flat. Each group records what evasion costs
+(holding time, unfinished rounds, open units, wash volume per 1000 steps). `agents.MultiUnitZI` (agent type
+`"MZI"`) is ZI with orders of 1..m units; it is registered from `v8/agents.py`, and `marketsim/` is untouched.
+With default arguments v8 reproduces v7 bit for bit. See `capstone codes/washtrade/v8/README.md`.
+
+## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`, v8 under `washtrade.v8/1`)
 
 ```
 <dataset>/runs/<background>__<scenario>__s<seed>/
