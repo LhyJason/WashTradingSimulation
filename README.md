@@ -27,9 +27,10 @@ capstone codes/
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
     v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
   detection/
-    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v3 are frozen; new work goes into v4, ...)
+    v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v4 are frozen; new work goes into v5, ...)
     v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
     v3/               the v2 detector on the v7 sweeps; thresholds calibrated per background to a 1% control FPR
+    v4/               multi-channel detector: closure + short-window round-trip and same-pair-repeat channels, control-null fusion
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -87,6 +88,10 @@ python "capstone codes/detection/v2/experiment.py" all --jobs 8
 # 3c. (optional) detection v3 on the v7 sweeps (needs all five v7 sweeps); or run detection/v3/results_detection_v3.ipynb
 python "capstone codes/detection/v3/run_smoke.py"
 python "capstone codes/detection/v3/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v7/data"
+
+# 3d. (optional) detection v4 on the v7 sweeps; or run detection/v4/results_detection_v4.ipynb
+python "capstone codes/detection/v4/run_smoke.py"
+python "capstone codes/detection/v4/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v7/data"
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -102,6 +107,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/detection/v1/results_detection_v1.ipynb` | detector evaluation on the v3 dataset (needs step 2; runs step 3 itself if its results are missing) |
 | `capstone codes/detection/v2/results_detection_v2.ipynb` | the detector on every v6 sweep: false positives on honest-only markets, leakage identity, random-walk benchmark, calibrated thresholds (generates missing v6 data itself) |
 | `capstone codes/detection/v3/results_detection_v3.ipynb` | the detector against the v7 adversary: calibrated thresholds, fixed triad vs full adversary, one tactic at a time (reads detection v3 results; set `WASH_V7_DATA`) |
+| `capstone codes/detection/v4/results_detection_v4.ipynb` | the multi-channel detector against the v7 adversary, v3 vs v4, FPR in wash runs, floor sensitivity (reads detection v4 results; set `WASH_V7_DATA`) |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 | `capstone codes/washtrade/v7/run_v7.ipynb` | runs the whole of v7 (smoke test, all five sweeps in parallel, merge, hashes) and draws quick-look figures |
 
@@ -160,6 +166,18 @@ tactics do work: rotation from 96 wallets, random size and residuals bring recal
 about 0.75, and about 0.35 with camouflage and a leg gap of 20. In the active markets detection is weak even against
 a fixed triad (recall 0.45 / 0.30), because honest wallets close their positions too. See
 `capstone codes/detection/v3/README.md`.
+
+## A multi-channel detector (detection v4)
+
+detection v4 keeps the network step and adds two kinds of initial score that look at short time windows: the share
+of a wallet's units undone by an opposite unit within W steps (round trips), and the share of its volume on ordered
+pairs that trade again within W steps (repeats). Each channel is propagated over the counterparty graph; a pair is
+as suspicious as its most extreme channel relative to the honest volume of the control runs, and thresholds are set
+exactly to a 1% pooled control FPR with a floor of 0.5. Over every wash cell of the v7 `evasive` sweep, recall at
+1% control FPR rises from 0.19 to 0.70 in `active` and from 0.22 to 0.65 in `active_dense`; every tactic alone is
+caught. A leg gap of 5 or more still defeats it in the active markets, and the FPR on honest volume of wash runs
+(spillover through the network step) is not controlled and is reported next to recall. See
+`capstone codes/detection/v4/README.md`.
 
 ## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`)
 
