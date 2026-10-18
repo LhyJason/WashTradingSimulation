@@ -33,6 +33,7 @@ capstone codes/
     v3/               the v2 detector on the v7 sweeps; thresholds calibrated per background to a 1% control FPR
     v4/               multi-channel detector: closure + short-window round-trip and same-pair-repeat channels, control-null fusion
     v5/               the v4 detector, unchanged, against the v8 adversary and multi-unit honest backgrounds
+    v6/               v4 + a cluster channel (Louvain communities): flags groups whose volume stays inside the group; fused with v4
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -102,6 +103,10 @@ python "capstone codes/detection/v4/experiment.py" all --jobs 8 --data "capstone
 # 3e. (optional) detection v5 on the v8 sweeps (needs step 2e); or run detection/v5/results_detection_v5.ipynb
 python "capstone codes/detection/v5/run_smoke.py"
 python "capstone codes/detection/v5/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v8/data"
+
+# 3f. (optional) detection v6 (cluster channel) on the v8 sweeps; or run detection/v6/results_detection_v6.ipynb
+python "capstone codes/detection/v6/run_smoke.py"
+python "capstone codes/detection/v6/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v8/data"
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -119,6 +124,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/detection/v3/results_detection_v3.ipynb` | the detector against the v7 adversary: calibrated thresholds, fixed triad vs full adversary, one tactic at a time (reads detection v3 results; set `WASH_V7_DATA`) |
 | `capstone codes/detection/v4/results_detection_v4.ipynb` | the multi-channel detector against the v7 adversary, v3 vs v4, FPR in wash runs, floor sensitivity (reads detection v4 results; set `WASH_V7_DATA`) |
 | `capstone codes/detection/v5/results_detection_v5.ipynb` | the v4 detector against the v8 adversary: recall by execution order, pipeline depth and rate; cost of evasion; multi-unit honest backgrounds (reads detection v5 results; set `WASH_V8_DATA`) |
+| `capstone codes/detection/v6/results_detection_v6.ipynb` | v4 + Louvain cluster channel against the v8 adversary: recall, false positives in thin/thick/active markets |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
 | `capstone codes/washtrade/v7/run_v7.ipynb` | runs the whole of v7 (smoke test, all five sweeps in parallel, merge, hashes) and draws quick-look figures |
 
