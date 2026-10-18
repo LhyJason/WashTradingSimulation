@@ -18,13 +18,14 @@ Collaboration rules (branches, Pull Requests, versioning): see [CONTRIBUTING.md]
 marketsim/            PyMarketSim (upstream simulator, see "Third-party code" below)
 repro/composable/     ComposableSimulator: mix agent types in one market; reused by washtrade
 capstone codes/
-  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v6 (v1-v6 are frozen; new work goes into v7, ...)
+  washtrade/          Part 1: wash-trading mechanism, versions v1 -> v7 (v1-v7 are frozen; new work goes into v8, ...)
     v1/               active co-arrival, one directed edge per wash event
     v2/               2-wallet groups, configurable leg gap `wash_gap`, order-book recorder
     v3/               camouflage wallets, several wash groups, export schema, dataset generator
     v4/               v3 + random limit prices around the midpoint (buy/sell limits cross inside the spread); own export + generator
     v5/               v3 + one common random price per event, centred on the microprice; volatility-capped radius; parameter-sweep CSV
     v6/               v3 + active honest market (mean reversion r), camouflage intensity, six sweeps, sharded generator, Slurm templates
+    v7/               v6 + evasive adversary: wallet-pool rotation, random round size executed as unit trades, bounded residuals; five sweeps
   detection/
     v1/               Part 2: closures -> propagation -> threshold, pairing, evaluation (v1-v2 are frozen; new work goes into v3, ...)
     v2/               the v1 detector on the v6 sweeps: leakage identity, random-walk benchmark for closures, calibrated thresholds
@@ -70,6 +71,11 @@ python "capstone codes/washtrade/v6/generate.py" list
 python "capstone codes/washtrade/v6/generate.py" run   --sweep gap --seeds 20
 python "capstone codes/washtrade/v6/generate.py" merge --sweep gap
 
+# 2d. (optional) v7: smoke test, then the evasive sweep (14,600 runs at 50 seeds); or run v7/run_v7.ipynb
+python "capstone codes/washtrade/v7/run_smoke.py"
+python "capstone codes/washtrade/v7/generate.py" run   --sweep evasive --seeds 50
+python "capstone codes/washtrade/v7/generate.py" merge --sweep evasive
+
 # 3. Run the detector configurations over the dataset (~30 s)
 python "capstone codes/detection/v1/experiment.py" --dataset "capstone codes/washtrade/v3/data/ds_v3"
 
@@ -91,6 +97,7 @@ Generated data is written to `capstone codes/**/data/`, which is git-ignored. Gi
 | `capstone codes/detection/v1/results_detection_v1.ipynb` | detector evaluation on the v3 dataset (needs step 2; runs step 3 itself if its results are missing) |
 | `capstone codes/detection/v2/results_detection_v2.ipynb` | the detector on every v6 sweep: false positives on honest-only markets, leakage identity, random-walk benchmark, calibrated thresholds (generates missing v6 data itself) |
 | `capstone codes/washtrade/v6/run_v6.ipynb` | runs the whole of v6 (smoke test, all six sweeps in parallel, merge, hashes) and draws quick-look figures |
+| `capstone codes/washtrade/v7/run_v7.ipynb` | runs the whole of v7 (smoke test, all five sweeps in parallel, merge, hashes) and draws quick-look figures |
 
 Open them with Jupyter from anywhere inside the repository; each notebook locates the repository root itself.
 
@@ -119,6 +126,16 @@ trading throughout), gives camouflage wallets their own arrival rate, and measur
 (the share of its volume traded with outsiders). With default arguments v6 reproduces v3 bit for bit. See
 `capstone codes/washtrade/v6/README.md` for the backgrounds, the six sweeps and how to run them on a Slurm cluster.
 
+## An evasive wash adversary (v7)
+
+In v1-v6 a wash group is two or three fixed wallets that trade one unit at a time in a fixed cycle, so every few
+events each wallet's position is back at zero and the same pairs trade dozens of times. v7 keeps v6's backgrounds,
+camouflage, price rules and labels and lets a group hide these patterns: it trades in rounds over wallets drawn from
+a pool, each round has a random size executed as unit trades (every honest ZI order is one unit), and the closing
+edge can leave a small bounded residual. With default arguments v7 reproduces v6 bit for bit. See
+`capstone codes/washtrade/v7/README.md` for the knobs, the five sweeps, the new labels and metrics, and the
+Windows-vs-Linux reproducibility check on a Slurm cluster.
+
 ## Detection on an active market (detection v2)
 
 detection v2 runs the v1 detector, unchanged, on all 6,460 v6 runs. In PyMarketSim's Table-3 market
@@ -128,7 +145,7 @@ them. Algorithm 1 then flags 40-45% of honest volume on honest-only runs. See
 `capstone codes/detection/v2/README.md` for the leakage identity, the random-walk benchmark and
 control-calibrated thresholds.
 
-## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`)
+## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`)
 
 ```
 <dataset>/runs/<background>__<scenario>__s<seed>/
