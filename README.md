@@ -34,6 +34,7 @@ capstone codes/
     v4/               multi-channel detector: closure + short-window round-trip and same-pair-repeat channels, control-null fusion
     v5/               the v4 detector, unchanged, against the v8 adversary and multi-unit honest backgrounds
     v6/               v4 + a cluster channel (Louvain communities): flags groups whose volume stays inside the group; fused with v4
+    final/            uncertainty of the final detector (v6): seed-level CIs, fresh-seed validation with frozen thresholds, run-level control FPR
 ```
 
 The folder name `capstone codes` contains a space, so it is not directly importable. Every entry point and
@@ -107,6 +108,12 @@ python "capstone codes/detection/v5/experiment.py" all --jobs 8 --data "capstone
 # 3f. (optional) detection v6 (cluster channel) on the v8 sweeps; or run detection/v6/results_detection_v6.ipynb
 python "capstone codes/detection/v6/run_smoke.py"
 python "capstone codes/detection/v6/experiment.py" all --jobs 8 --data "capstone codes/washtrade/v8/data"
+
+# 3g. (optional) final detector checks (needs step 3f): fresh seeds 1000-1099 with frozen thresholds, then CIs and the control-FPR figure
+python "capstone codes/detection/final/heldout.py" all --jobs 8 --seed0 1000 --n 100 --src "capstone codes/washtrade/v8/data" --out "capstone codes/washtrade/v8/data_heldout"
+python "capstone codes/detection/final/seed_ci.py" "capstone codes/detection/final" "capstone codes/washtrade/v8/data"
+python "capstone codes/detection/final/seed_ci.py" "capstone codes/detection/final" "capstone codes/washtrade/v8/data_heldout" _heldout
+python "capstone codes/detection/final/control_fpr.py" "capstone codes/detection/final" "capstone codes/washtrade/v8/data" "capstone codes/washtrade/v8/data_heldout"
 ```
 
 Generated data is written to `capstone codes/**/data/`, which is git-ignored. Given the same seeds and the pinned
@@ -216,6 +223,16 @@ channel catches it. A pipeline evades v4 in the active markets: with D = 8 and i
 pipeline is cheap: wash volume is unchanged, and the cost is longer holding at wallet level, which the group hedges
 internally. Multi-unit honest orders weaken the closure channel, not the new ones. See
 `capstone codes/detection/v5/README.md`.
+
+## How far the final detector's numbers hold (detection/final)
+
+Detection v6 is the final detector. `detection/final` measures its uncertainty without changing it. The v8 sweeps
+were rerun on 100 seeds never used before (1000-1099, 14,000 runs) and scored with the thresholds of the
+200-seed run, unchanged. Recall moves by at most 0.022 (active, gap 0: 0.82 -> 0.83; gap 5: 0.50 -> 0.50), and the
+false-positive rate in wash runs does not change. The control-run FPR, calibrated to 1% in sample, is 3.3% on the fresh
+active controls (95% CI 1.1-6.3%). Run by run, most control runs have no false positive and a few carry most of
+them: the closure channel saturates in a handful of honest active runs, and the cluster channel flags nothing there.
+See `capstone codes/detection/final/README.md`.
 
 ## Dataset layout (produced by `washtrade/v3/generate.py`; v4 writes the same layout under schema `washtrade.v4/1`, v6 under `washtrade.v6/1`, v7 under `washtrade.v7/1`, v8 under `washtrade.v8/1`)
 
