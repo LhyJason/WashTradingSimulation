@@ -10,7 +10,7 @@ things:
 
   2) step()/run() : before a timestep's clear, if a wash event is due, the controller's
      crossing (SELL, BUY) pair is injected into the SAME timestep, so it participates in the
-     one batch clear that ComposableSimulator already performs. run() is widened to also fire
+     one clear that ComposableSimulator already performs. run() is widened to also fire
      on wash-due timesteps (which may have no ZI arrival of their own).
 
 Nothing in marketsim/ or repro/composable/ is modified.
@@ -67,7 +67,7 @@ class WashTradingSimulator(ComposableSimulator):
             market.withdraw_all(buyer_id)
             market.add_orders([sell_order, buy_order])
             n_before = len(market.matched_orders)
-            super().step()                            # processes ZI arrivals + single batch clear
+            super().step()                            # processes ZI arrivals + single clear
             new_matched = market.matched_orders[n_before:]
             self.controller.record(self.time, new_matched)
             self.controller.advance()

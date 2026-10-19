@@ -5,7 +5,7 @@ Mechanism is unchanged from v2 (see washtrade/v2/controller.py for the full rati
   * wallets form a directed cycle (n = 2: A <-> B, n = 3: A -> B -> C -> A, ...); each event
     trades the next edge (seller, buyer) with two legs priced off ONE midpoint anchor captured
     at leg-1 time (SELL = anchor - eps, BUY = anchor + eps; eps = 0 by default);
-  * leg 1 at t, leg 2 at t + gap. gap = 0 -> both legs in the same batch clear (v1 behaviour);
+  * leg 1 at t, leg 2 at t + gap. gap = 0 -> both legs in the same clear (v1 behaviour);
     gap > 0 -> leg 1 is exposed and can be intercepted (the spillover knob);
   * events are strictly sequential within a group; timing is geometric with rate ``lam_wash``.
 

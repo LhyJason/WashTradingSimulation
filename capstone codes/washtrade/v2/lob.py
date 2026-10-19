@@ -24,7 +24,7 @@ Row semantics (one row per cleared timestep):
   * ``*_pre``  -- the resting book as inherited at the START of the step, before this step's
                   orders are inserted and before the clear.
   * ``*_post`` -- the resting book AFTER the clear (matched orders are gone).
-  * clear/volume columns describe the trades printed in this step's batch clear.
+  * clear/volume columns describe the trades printed in this step's clear.
 """
 import math
 

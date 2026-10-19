@@ -9,7 +9,7 @@ three things:
      by the controller. n = 2 (ping-pong) and n = 3 (triangle) are both supported.
 
   2) step()/run() : if a wash LEG is due at this timestep, the controller's order for that leg
-     is injected before the timestep's single batch clear. With ``wash_gap=0`` both legs are
+     is injected before the timestep's single clear. With ``wash_gap=0`` both legs are
      injected together (v1 behaviour); with ``wash_gap>0`` leg 2 arrives ``gap`` timesteps
      later, and every background arrival in between can hit the exposed leg 1. run() fires on
      any timestep that carries a background arrival OR a wash leg.
@@ -95,7 +95,7 @@ class WashTradingSimulator(ComposableSimulator):
                 market.add_orders([order])
 
         n_before = len(market.matched_orders)
-        super().step()                        # ZI arrivals + the single batch clear
+        super().step()                        # ZI arrivals + the single clear
         new_matched = market.matched_orders[n_before:]
 
         if t < self.sim_time:

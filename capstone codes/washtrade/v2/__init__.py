@@ -8,7 +8,7 @@ v2 = v1 + three additions (the v1 package is frozen and left untouched):
      detector (a single reciprocal edge), so Part 2 needs it as a separate condition.
 
   2) **The time gap between the two legs is a parameter** (``wash_gap``, in timesteps).
-     v1 hard-wired gap = 0 (both wallets act in the SAME timestep and match inside one batch
+     v1 hard-wired gap = 0 (both wallets act in the SAME timestep and match inside one
      clear). v2 posts leg 1 at t, leg 2 at t + gap, so for gap > 0 the first leg sits
      EXPOSED in the book and the background traders can hit it -- this is the "exposed
      quote" mechanism v1's notes flagged as the way to actually generate spillover.

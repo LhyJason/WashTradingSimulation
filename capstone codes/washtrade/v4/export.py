@@ -26,7 +26,7 @@ leaks are closed on purpose:
   * **legs are shuffled within each clear** before ``leg_id`` is assigned -- the matched-order
     list is built from heap internals, whose order depends on insertion order.
 
-The batch auction does not say who traded with whom inside a clear; reconstructing pairs from
+A clear does not record who traded with whom; reconstructing pairs from
 ``trades.csv`` is the detector's job (see detection/v1/pairing.py).
 
 TODO: the column layout is a working default. If it changes before the dataset format is

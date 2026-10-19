@@ -13,13 +13,20 @@ The detector is v1's (``detection.v1.pipeline.detect``), unchanged. What v2 adds
       outsider  s_bar = volume-weighted score of G's outside counterparties
       x0_bar, x_bar   = volume-weighted initial / final score of G's wallets
 
-  If every wallet of G had the same score, the fixed point x = x0/2 + Bx/2 would give exactly
+  At the fixed point x = x0/2 + Bx/2 the exact identity is
+
+      x_bar = x0_bar + l * (s_bar - x_out)
+
+  with x_out the score of G's wallets weighted by their outside volume (checked in run_smoke.py).
+  If every wallet of G had the same score (x_out = x_bar) this becomes
 
       x_bar = (x0_bar + l * s_bar) / (1 + l)                    (the leakage formula)
 
   so ``x_pred`` is the formula's value and ``x_bar - x_pred`` measures how far real groups are
-  from that symmetric case. With s_bar ~ 0 and x0 = 1 the group falls below theta once
-  l > (1 - theta) / theta (0.11 at theta = 0.9).
+  from that symmetric case. The group falls below theta once l > (x0_bar - theta) / (theta - s_bar),
+  and never if s_bar >= theta. Outsiders do not score near 0: in the v6 sweeps s_bar is about 0.45
+  in thin/thick and 0.83 in active, so the group stays above theta far longer than s_bar = 0 would
+  suggest (that case would give l > 0.11 at theta = 0.9, x0 = 1).
 * **Threshold curves** (``threshold_curve``). Trade- and wallet-level counts at a grid of
   thresholds, so any threshold rule (e.g. one calibrated on control runs) can be evaluated later
   without re-running the detector.

@@ -10,7 +10,7 @@ cancel its wash leg. v3 replaces that single call with order-scoped cancellation
     wash leg posted  -> cancel this wallet's stale WASH orders (order_id >= 1e9)
 
 For every agent that is not a camouflage wallet the two coincide with withdraw-all, and the rest
-of the step body (arrival resampling, batch clear, position/cash booking) is copied verbatim
+of the step body (arrival resampling, clear, position/cash booking) is copied verbatim
 from ``SimulatorSampledArrival.step``. Nothing in marketsim/ or repro/composable/ is modified.
 
 Wash groups:
@@ -219,7 +219,7 @@ class WashTradingSimulator(ComposableSimulator):
             self.arrivals[self.arrival_times[self.arrival_index].item() + 1 + t].append(agent_id)
             self.arrival_index += 1
 
-        # 3) the single batch clear + position/cash booking (verbatim upstream formulas)
+        # 3) the single clear + position/cash booking (verbatim upstream formulas)
         new_matched = market.step()
         for matched_order in new_matched:
             agent_id = matched_order.order.agent_id

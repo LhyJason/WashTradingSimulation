@@ -10,9 +10,9 @@ The paper's three modular parts, one module each, implemented as written (Sectio
   Part III threshold.py    market-specific threshold theta* minimizing relative spillover Y(theta)
                            over [0.8, 0.99] with Y <= 0.1, slack zeta = 0.001 (Algorithm 2)
 
-plus the two things the paper did not need but a single-asset batch-auction simulator does:
+plus the two things the paper did not need but a single-asset simulated market does:
 
-  pairing  pairing.py      who traded with whom inside a uniform-price clear: pro-rata split
+  pairing  pairing.py      who traded with whom inside one clear: pro-rata split
   eval     evaluate.py     precision / recall / FPR against the ground truth (the paper had none)
 
 Single-market adaptation (the one deliberate deviation, switchable): the paper's

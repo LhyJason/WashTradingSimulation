@@ -17,7 +17,7 @@ Mechanism (v1): ACTIVE co-arrival, ONE directed edge per event.
     from the ZI background, so wash intensity is a clean experimental knob.
 
 The controller NEVER enters the order book itself. It only builds the two Order objects that
-the simulator injects; the simulator's batch clear matches them, and the upstream
+the simulator injects; the simulator's clear matches them, and the upstream
 matched-order loop books the positions. Interceptions by a ZI ("spillover") are recorded in
 ``event_log`` (seller_filled / buyer_filled / self_trade), not corrected away.
 """
@@ -85,7 +85,7 @@ class WashController:
 
         NOTE on eps > 0 (kept as a parameter, but NOT a spillover knob): pushing SELL down and
         BUY up only makes the pair *more* dominant on both sides, so it still self-trades every
-        time -- it does not induce ZI interception. Its only real effect is to move the uniform
+        time -- it does not induce ZI interception. Its only real effect is to move the
         clearing price to anchor-eps (the bid quote becomes the wash sell), i.e. it adds a
         downward PRICE IMPACT. Since v1's scope is pure volume with no price manipulation, leave
         eps at 0. Deliberately generating spillover needs a different mechanism (a less dominant,

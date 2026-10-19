@@ -20,7 +20,7 @@ closure counts for the window its trade falls in, volume shares are per window. 
 NOT reset at window boundaries -- closures are always found on the true position path, so the
 windows only change the volume weighting. ``n_windows = 1`` reproduces the literal formula.
 
-Batch clearing detail: all legs of one wallet in one clear are simultaneous, so they are netted
+Clearing detail: all legs of one wallet in one clear are simultaneous, so they are netted
 into one trade (a wallet buying 1 and selling 1 in the same clear does not move its position);
 gross quantity still counts toward its volume.
 """

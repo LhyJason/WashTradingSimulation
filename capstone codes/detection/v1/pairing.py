@@ -1,9 +1,9 @@
-r"""pairing.py -- turning a batch-auction tape into counterparty pairs.
+r"""pairing.py -- turning a trade tape into counterparty pairs.
 
 The problem: Polymarket's tape records maker and taker for every fill, so the paper's matrix B
-comes straight from the data. PyMarketSim clears a uniform-price call auction: every buy leg
-matched at time t trades against every sell leg matched at t at one price, and the matched-order
-list carries no pairing.
+comes straight from the data. PyMarketSim is a continuous double auction that clears once per
+time step: the four-heap prices every order matched at time t at one price (the bid quote), and
+the matched-order list carries no pairing.
 
 Rule used (pro-rata): within one clear with buy legs b_1..b_m and sell legs s_1..s_n
 (sum b = sum s = Q), leg pair (b_k, s_l) is assigned volume  b_k * s_l / Q.

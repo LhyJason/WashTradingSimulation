@@ -6,14 +6,14 @@ Mechanism (v2): ONE directed edge per event, TWO legs separated by ``gap`` times
     event consumes the next edge (seller, buyer) and is executed in two legs:
 
         t              : leg 1 is posted  (which side goes first is ``first_leg``)
-        t + gap        : leg 2 is posted  -> it crosses leg 1 in that timestep's batch clear
+        t + gap        : leg 2 is posted  -> it crosses leg 1 in that timestep's clear
 
     Both legs are priced off ONE anchor captured at leg-1 time: the current spread MIDPOINT
     (SELL = anchor - eps, BUY = anchor + eps, default eps = 0 -> both exactly at the mid).
     Leg 2 deliberately reuses the *stale* anchor rather than re-reading the book, because
     that is what guarantees the two legs still cross each other when leg 2 arrives.
 
-  * ``gap = 0`` -> both legs land in the SAME timestep and the same batch clear. This is
+  * ``gap = 0`` -> both legs land in the SAME timestep and the same clear. This is
     exactly the v1 mechanism (and reproduces it bit-for-bit; see run_smoke.py check E).
 
   * ``gap > 0`` -> leg 1 sits EXPOSED in the book for ``gap`` timesteps. Every background
@@ -136,7 +136,7 @@ class WashController:
 
         NOTE on eps > 0 (kept as a parameter, but NOT a spillover knob -- v1 finding): pushing
         SELL down and BUY up only makes the pair more dominant on both sides; its only real
-        effect is to drag the uniform clearing price to anchor-eps (a downward price impact),
+        effect is to drag the clearing price to anchor-eps (a downward price impact),
         which contradicts the pure-volume / no-manipulation scope. Leave eps at 0 and use
         ``gap`` to generate spillover instead.
         """
@@ -205,7 +205,7 @@ class WashController:
     def _post_open(self, t):
         seller_id, buyer_id = self.edges[self.edge_idx]
         anchor, delta, bb, ba = self._anchor_and_delta()
-        # At gap = 0 the two legs land in the same batch clear, so "which one is first" has no
+        # At gap = 0 the two legs land in the same clear, so "which one is first" has no
         # meaning; we fix the convention SELL-then-BUY (leg 1 = SELL) and skip the coin flip.
         # That also makes gap=0 byte-identical to v1: same order_id assignment and the same
         # insertion order into the event queue.
@@ -225,7 +225,7 @@ class WashController:
 
         posts = [self._make_leg(ev, first, t)]
         if self.gap == 0:
-            # v1 behaviour: both legs in the same timestep -> same batch clear.
+            # v1 behaviour: both legs in the same timestep -> same clear.
             posts.append(self._make_leg(ev, -first, t))
             ev["_close_posted"] = True
         return posts
